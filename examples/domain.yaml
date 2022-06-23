@@ -1,0 +1,258 @@
+apiVersion: weblogic.oracle/v8
+kind: Domain
+metadata:
+  creationTimestamp: "2022-04-15T06:48:38Z"
+  generation: 2
+  managedFields:
+  - apiVersion: weblogic.oracle/v8
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:ownerReferences:
+          .: {}
+          k:{"uid":"f75ef1cf-2462-4fe4-84c5-7728e9f8c36d"}:
+            .: {}
+            f:apiVersion: {}
+            f:blockOwnerDeletion: {}
+            f:controller: {}
+            f:kind: {}
+            f:name: {}
+            f:uid: {}
+    manager: verrazzano-application-operator
+    operation: Update
+    time: "2022-04-15T06:48:38Z"
+  - apiVersion: weblogic.oracle/v8
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:status:
+        .: {}
+        f:clusters: {}
+        f:conditions: {}
+        f:introspectJobFailureCount: {}
+        f:lastIntrospectJobProcessedUid: {}
+        f:replicas: {}
+        f:servers: {}
+        f:startTime: {}
+    manager: Kubernetes Java Client
+    operation: Update
+    time: "2022-04-15T06:52:02Z"
+  name: nonjrfdomain7
+  namespace: nonjrfdomain7-ns
+  ownerReferences:
+  - apiVersion: oam.verrazzano.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: VerrazzanoWebLogicWorkload
+    name: nonjrfdomain7
+    uid: f75ef1cf-2462-4fe4-84c5-7728e9f8c36d
+  resourceVersion: "9651599"
+  uid: 8bc8377a-44c1-4160-898f-2aebe9e9659f
+spec:
+  adminServer:
+    adminChannelPortForwardingEnabled: true
+    serverPod:
+      env:
+      - name: USER_MEM_ARGS
+        value: -Xms256m -Xmx512m -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom
+      - name: JAVA_OPTIONS
+        value: -Dweblogic.store.file.LockEnabled=false -Dweblogic.rjvm.allowUnknownHost=true
+          -Dweblogic.security.remoteAnonymousRMIT3Enabled=false -Dweblogic.security.remoteAnonymousRMIIIOPEnabled=false
+    serverStartState: RUNNING
+  clusters:
+  - clusterName: nonjrfdomain7-cluster
+    replicas: 3
+    serverPod:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: weblogic.clusterName
+                  operator: In
+                  values:
+                  - nonjrfdomain7-cluster
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      env:
+      - name: USER_MEM_ARGS
+        value: -XX:+UseContainerSupport -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom
+      - name: JAVA_OPTIONS
+        value: -Dweblogic.store.file.LockEnabled=false -Dweblogic.rjvm.allowUnknownHost=true
+          -Dweblogic.security.remoteAnonymousRMIT3Enabled=false -Dweblogic.security.remoteAnonymousRMIIIOPEnabled=false
+    serverStartState: RUNNING
+  configuration:
+    introspectorJobActiveDeadlineSeconds: 300
+    istio:
+      enabled: true
+    model:
+      configMap: nonjrfdomain7-uid-wdt-config-map
+      domainType: WLS
+      runtimeEncryptionSecret: nonjrfdomain7-runtime-encryption-secret
+  dataHome: /u01/shared/weblogic-domains/nonjrfdomain7/data/store
+  domainHome: /u01/data/domains/nonjrfdomain7-uid
+  domainHomeSourceType: FromModel
+  domainUID: nonjrfdomain7-uid
+  image: phx.ocir.io/paasdevjcs/lyvz/wls-base-image/nonjrfdomain7/122140:nonjrfdomain7-22-04-15_06-45-26
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets:
+  - name: ocirsecrets
+  includeServerOutInPodLog: true
+  logHome: /u01/shared/weblogic-domains/nonjrfdomain7/logs
+  logHomeEnabled: true
+  monitoringExporter:
+    image: phx.ocir.io/paasdevjcs/lyvz/infra/weblogic-monitoring-exporter:2.0.4
+    imagePullPolicy: IfNotPresent
+  restartVersion: "1"
+  serverPod:
+    containers:
+    - args:
+      - -c
+      - /etc/fluent.conf
+      env:
+      - name: LOG_PATH
+        value: /scratch/logs/nonjrfdomain7/$(SERVER_NAME).log,/scratch/logs/nonjrfdomain7/$(SERVER_NAME)_access.log,/scratch/logs/nonjrfdomain7/$(SERVER_NAME)_nodemanager.log,/scratch/logs/nonjrfdomain7/$(DOMAIN_UID).log
+      - name: FLUENTD_CONF
+        value: fluentd.conf
+      - name: NAMESPACE
+        value: nonjrfdomain7-ns
+      - name: APP_CONF_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels['app.oam.dev/name']
+      - name: COMPONENT_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels['app.oam.dev/component']
+      - name: DOMAIN_UID
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels['weblogic.domainUID']
+      - name: SERVER_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels['weblogic.serverName']
+      - name: SERVER_LOG_PATH
+        value: /scratch/logs/nonjrfdomain7/$(SERVER_NAME).log
+      - name: ACCESS_LOG_PATH
+        value: /scratch/logs/nonjrfdomain7/$(SERVER_NAME)_access.log
+      - name: NODEMANAGER_LOG_PATH
+        value: /scratch/logs/nonjrfdomain7/$(SERVER_NAME)_nodemanager.log
+      - name: DOMAIN_LOG_PATH
+        value: /scratch/logs/nonjrfdomain7/$(DOMAIN_UID).log
+      image: phx.ocir.io/paasdevjcs/lyvz/verrazzano/fluentd-kubernetes-daemonset:v1.12.3-20220225061210-0302423
+      imagePullPolicy: IfNotPresent
+      name: fluentd-stdout-sidecar
+      resources: {}
+      volumeMounts:
+      - mountPath: /fluentd/etc/fluentd.conf
+        name: fluentd-config-volume
+        readOnly: true
+        subPath: fluentd.conf
+      - mountPath: /scratch
+        name: weblogic-domain-storage-volume
+        readOnly: true
+    env:
+    - name: RESOURCE_PREFIX
+      value: nonjrfdomain7
+    - name: JAVA_OPTIONS
+      value: '-Dweblogic.StdoutDebugEnabled=false -Doracle.jdbc.fanEnabled=false '
+    - name: OKE_DOMAIN_NAME
+      value: nonjrfdomain7
+    labels:
+      app: nonjrfdomain7
+      app.oam.dev/component: nonjrfdomain7
+      app.oam.dev/name: nonjrfdomain7-appconf
+      verrazzano.io/workload-type: weblogic
+    volumeMounts:
+    - mountPath: /u01/shared
+      name: weblogic-domain-storage-volume
+    volumes:
+    - name: weblogic-domain-storage-volume
+      persistentVolumeClaim:
+        claimName: nonjrfdomain7-oke-pvc
+    - configMap:
+        defaultMode: 420
+        name: fluentd-config-weblogic
+      name: fluentd-config-volume
+  serverStartPolicy: IF_NEEDED
+  webLogicCredentialsSecret:
+    name: nonjrfdomain7-weblogic-credentials
+status:
+  clusters:
+  - clusterName: nonjrfdomain7-cluster
+    maximumReplicas: 9
+    minimumReplicas: 0
+    readyReplicas: 2
+    replicas: 2
+    replicasGoal: 2
+  conditions:
+  - lastTransitionTime: "2022-04-15T06:52:41.938471Z"
+    reason: ServersReady
+    status: "True"
+    type: Available
+  introspectJobFailureCount: 0
+  lastIntrospectJobProcessedUid: ce9f2263-81a5-4e40-ad32-cdd1f90d7a9a
+  replicas: 2
+  servers:
+  - desiredState: RUNNING
+    health:
+      activationTime: "2022-04-15T06:51:55.319000Z"
+      overallHealth: ok
+      subsystems:
+      - subsystemName: ServerRuntime
+        symptoms: []
+    nodeName: 100.111.191.77
+    serverName: nonjrfdomain7-adminserver
+    state: RUNNING
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: RUNNING
+    health:
+      activationTime: "2022-04-15T06:52:34.395000Z"
+      overallHealth: ok
+      subsystems:
+      - subsystemName: ServerRuntime
+        symptoms: []
+    nodeName: 100.111.191.77
+    serverName: nonjrfdomain7-managed-server1
+    state: RUNNING
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: RUNNING
+    health:
+      activationTime: "2022-04-15T06:52:31.489000Z"
+      overallHealth: ok
+      subsystems:
+      - subsystemName: ServerRuntime
+        symptoms: []
+    nodeName: 100.111.191.89
+    serverName: nonjrfdomain7-managed-server2
+    state: RUNNING
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server3
+    state: SHUTDOWN
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server4
+    state: SHUTDOWN
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server5
+    state: SHUTDOWN
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server6
+    state: SHUTDOWN
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server7
+    state: SHUTDOWN
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server8
+    state: SHUTDOWN
+  - clusterName: nonjrfdomain7-cluster
+    desiredState: SHUTDOWN
+    serverName: nonjrfdomain7-managed-server9
+    state: SHUTDOWN
+  startTime: "2022-04-15T06:48:38.980605Z"
